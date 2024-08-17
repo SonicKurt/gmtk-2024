@@ -12,13 +12,12 @@ public class PlayerController : MonoBehaviour
     public float fallGravityModifier;
     public float mass;
     private float scaleDuration;
-
     private Rigidbody rb;
     private bool isJumping;
     private float jumpKeyPressed;
     private bool isGrounded;
-    private bool isMorphing;
     private Vector3 position;
+    private GameObject smokeObject;
 
     private void Move()
     {
@@ -87,17 +86,16 @@ public class PlayerController : MonoBehaviour
 
     private IEnumerator Morph(GameObject targetObject)
     {
+        smokeObject.SetActive(true);
+
         Vector3 initialScale = transform.localScale;
-        Vector3 targetScale = targetObject.transform.localScale;
+        Vector3 targetScale = Vector3.zero;
 
         float elapsedTime = 0;
 
         while (elapsedTime < scaleDuration)
         {
             transform.localScale = Vector3.Lerp(initialScale, targetScale, elapsedTime / scaleDuration);
-
-            Debug.Log(transform.localScale);
-
             elapsedTime += Time.deltaTime;
             yield return null;
         }
@@ -105,6 +103,8 @@ public class PlayerController : MonoBehaviour
         transform.localScale = targetScale;
 
         this.gameObject.SetActive(false);
+
+        smokeObject.SetActive(false);
 
         targetObject.transform.position = position;
         targetObject.SetActive(true);
@@ -120,13 +120,20 @@ public class PlayerController : MonoBehaviour
         rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
         rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationY | RigidbodyConstraints.FreezeRotationZ;
 
-        scaleDuration = 2f;
+        scaleDuration = 3f;
+
+        position = transform.position;
+
+        GameObject smokeObjectPrefab = Resources.Load<GameObject>("Smoke");
+        smokeObject = Instantiate(smokeObjectPrefab, position, Quaternion.Euler(-85.19f, 0, 0));
+        smokeObject.SetActive(false);
     }
 
     // Update is called once per frame
     void Update()
     {
         position = transform.position;
+        smokeObject.transform.position = position;
 
         Move();
         Jump();
